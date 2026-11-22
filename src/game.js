@@ -10,7 +10,7 @@ import { Finger } from './finger.js';
 import { InkLayer, makeInk, INK_FONT } from './ink.js';
 import { Sound } from './audio.js';
 import { store } from './storage.js';
-import { MATERIALS as MATS } from './physics.js';
+import { MATERIALS as MATS, ZENKAI } from './physics.js';
 
 const M = window.Matter;
 const $ = (id) => document.getElementById(id);
@@ -64,7 +64,8 @@ let lastMilestone = 0;
 let resultData = null;
 let frameTimes = [];
 let playStartAt = 0;
-let lastActionAt = 0; // 最後に「壊れた・連鎖した」時刻（崩壊の終わりを判定する）
+let lastActionAt = 0;
+let pendingPts = 0; // 最後に「壊れた・連鎖した」時刻（崩壊の終わりを判定する）
 
 /* ───────────────────────── 画面サイズ・カメラ ───────────────────────── */
 
@@ -126,7 +127,8 @@ function startGame() {
   computeOverview();
   camGoal = { ...overview };
   $('rotate').classList.toggle('hidden', !(H > W * 1.15));
-  showHint(pointer.type === 'mouse' ? '崩したい所にカーソルを合わせて、長押し！' : '崩したい所を長押し！', 3.2);
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+  showHint(coarse ? '崩したい所を長押し！ 離すと解放！' : '崩したい所にカーソルを合わせて、長押し！', 3.2);
 }
 
 function retry() {
@@ -143,7 +145,8 @@ function retry() {
 
 function setMode(m) {
   mode = m; modeT = 0;
-  canvas.style.cursor = m === 'aim' || m === 'press' || m === 'charge' ? 'crosshair' : m === 'collapse' ? 'pointer' : 'default';
+  // 照準を自前で描くので、狙っている間はマウスカーソルを隠す
+  canvas.style.cursor = m === 'aim' || m === 'press' || m === 'charge' ? 'none' : m === 'collapse' || m === 'settle' ? 'crosshair' : 'default';
 }
 
 /* ───────────────────────── 狙点 ───────────────────────── */
@@ -438,8 +441,12 @@ function handleEvents() {
       }
       case 'destroy': {
         lastActionAt = performance.now();
-        const big = e.ent.value >= 800 || e.level >= 1;
-        if (e.pts > 0) addPopup(e.x, e.y - 20, `+${e.pts.toLocaleString('ja-JP')}`, big ? 20 : 15, e.level >= 1 ? '#ffd36b' : '#ffffff');
+        // 小さな点数はまとめて、大きなものだけ吹き出しにする（画面がうるさくならないように）
+        pendingPts += e.pts;
+        if (e.pts >= 40000 || e.level >= 1) {
+          addPopup(e.x, e.y - 20, `+${pendingPts.toLocaleString('ja-JP')}`, e.pts >= 100000 ? 22 : 18, e.level >= 1 ? '#ffd36b' : '#ffffff');
+          pendingPts = 0;
+        }
         break;
       }
       case 'target': {
@@ -468,7 +475,9 @@ function matSoundName(s) { const l = SOUND_OF[s] || SOUND_OF.concrete; return l[
 function panOf(x) { const s = R.toScreen(cam, x, 0); return ((s.x / W) - 0.5) * 1.2; }
 
 function addPopup(x, y, text, size = 16, color = '#fff', life = 1.1) {
-  if (popups.length > 24) popups.shift();
+  // 近くの吹き出しと重ならないように少しずらす
+  for (const p of popups) if (p.t < 0.4 && Math.abs(p.x - x) < 70 && Math.abs(p.y - y) < 24) y -= 26;
+  if (popups.length > 14) popups.shift();
   popups.push({ x, y, text, size, color, t: 0, life });
 }
 
@@ -508,10 +517,10 @@ function updateHud(force = false) {
   $('rate').innerHTML = `${r.toFixed(1)}<small>%</small>`;
   $('rate-bar').style.width = `${Math.min(100, r)}%`;
   const combo = P.stats.chain;
-  if (combo !== shownCombo) {
+  if (combo !== shownCombo || force) {
     const el = $('combo');
     el.textContent = `×${combo}`;
-    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    if (!force) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
     shownCombo = combo;
   }
 }
@@ -526,7 +535,7 @@ export function formatDeco(man) {
 }
 
 function rankOf(score) {
-  const ranks = [[0, '見習いの指'], [150000, '一人前の指'], [500000, '熟練の指'], [900000, '達人の指'], [1300000, '指聖'], [1800000, '指神']];
+  const ranks = [[0, '見習いの指'], [200000, '一人前の指'], [600000, '熟練の指'], [1000000, '達人の指'], [1400000, '指聖'], [1800000, '指神']];
   let r = ranks[0][1];
   for (const [s, n] of ranks) if (score >= s) r = n;
   return r;
@@ -540,12 +549,12 @@ function showResult() {
   const upd = store.submit(stage.id, rec);
   resultData = { fin, rec, upd };
   const rate = fin.rate;
-  const word = rate >= 0.85 ? '全壊。' : rate >= 0.5 ? '半壊。' : rate >= 0.15 ? '小破。' : 'かすり傷。';
+  const word = rate >= ZENKAI ? '全壊。' : rate >= 0.5 ? '大破。' : rate >= 0.3 ? '中破。' : rate >= 0.1 ? '小破。' : 'かすり傷。';
   drawResultInk(word);
   $('rank-title').textContent = `称号：${rankOf(fin.score)}　／　${{ 会心: '会心の一撃', 良: '良い一撃', 弱: '弱い一撃', 過蓄圧: '過蓄圧の一撃' }[shot?.grade] || ''}`;
   $('r-score').textContent = fin.score.toLocaleString('ja-JP');
   $('r-rate').textContent = `${(rate * 100).toFixed(1)}%`;
-  $('r-chain').textContent = `${s.chain}（最大コンボ ${s.maxCombo}）`;
+  $('r-chain').textContent = `${s.chain}`;
   $('r-damage').textContent = formatDeco(s.damage);
   const goals = $('r-goals');
   goals.innerHTML = '';
@@ -1017,8 +1026,9 @@ window.__yubi = {
   screenOf(id, dx = 0, dy = 0) {
     const e = P?.entities.find((x) => x.id === id);
     if (!e) return null;
-    const w = e.w ?? e.r * 2, h = e.h ?? e.r * 2;
-    return R.toScreen(cam, e.body.position.x + dx * w / 2, e.body.position.y + dy * h / 2);
+    const b = e.body.bounds;
+    const w = b.max.x - b.min.x, h = b.max.y - b.min.y;
+    return R.toScreen(cam, (b.min.x + b.max.x) / 2 + dx * w / 2, (b.min.y + b.max.y) / 2 + dy * h / 2);
   },
   get mode() { return mode; },
   get stats() { return P?.stats; },

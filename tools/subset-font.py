@@ -2,15 +2,24 @@
 
   python3 tools/subset-font.py 元のフォント.ttf
 
-src/*.js・index.html・style.css に出てくる文字と、かな・英数字を残す。
+src/*.js の文字列（'…' "…" `…`）と index.html の本文に出てくる文字、かな・英数字だけを残す（コメントの文字は入れない）。
+元のフォント：https://github.com/google/fonts/tree/main/ofl/yujiboku
 出力：assets/fonts/yuji-boku-subset.woff2
 必要：pip install fonttools brotli
 """
 import sys, pathlib, subprocess
 root = pathlib.Path(__file__).resolve().parent.parent
+import re
 chars = set()
-for f in list((root / 'src').glob('*.js')) + [root / 'index.html', root / 'style.css']:
-    chars |= set(f.read_text(encoding='utf-8'))
+for f in (root / 'src').glob('*.js'):
+    code = f.read_text(encoding='utf-8')
+    code = re.sub(r'/\*.*?\*/', '', code, flags=re.S)
+    code = re.sub(r'(^|[^:"\'`])//[^\n]*', r'\1', code)
+    for m in re.finditer(r"'([^'\\\n]*)'|\"([^\"\\\n]*)\"|`([^`]*)`", code):
+        chars |= set(''.join(g for g in m.groups() if g))
+html = (root / 'index.html').read_text(encoding='utf-8')
+html = re.sub(r'<script.*?</script>', '', html, flags=re.S)
+chars |= set(re.sub(r'<[^>]+>', ' ', html))
 # かな・英数字・記号
 for a, b in [(0x20, 0x7e), (0x3000, 0x30ff), (0xff01, 0xff5e)]:
     chars |= {chr(c) for c in range(a, b + 1)}

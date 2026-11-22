@@ -35,6 +35,9 @@ export const TUNING = {
   fallY: 700,
 };
 
+// 「全壊」とみなす破壊率（一発でぎりぎり届くくらい）
+export const ZENKAI = 0.7;
+
 const QUALITY_BUDGET = { high: 64, mid: 52, low: 40 };
 
 // 乱数（再現可能）
@@ -256,6 +259,7 @@ export function createPhysics(M, stage, opts = {}) {
   }
 
   const pendingBreaks = new Set();
+  const brokenRoots = []; // 砕けて world から消えた元の物体（目標の判定用）
 
   function fracture(ent, energy, dir) {
     if (!entities.includes(ent)) return;
@@ -265,6 +269,7 @@ export function createPhysics(M, stage, opts = {}) {
     const cos = Math.cos(ang), sin = Math.sin(ang);
     const toWorld = (lx, ly) => ({ x: c.x + lx * cos - ly * sin, y: c.y + lx * sin + ly * cos });
     removeEntity(ent);
+    if (!ent.isFrag) brokenRoots.push(ent);
     stats.broken += 1;
     markDestroyed(ent, 1);
     wakeAround(body.bounds, 120);
@@ -591,11 +596,14 @@ export function createPhysics(M, stage, opts = {}) {
     const goals = [];
     const r = rate();
     if (stats.targetDown) goals.push({ id: 'target', label: '看板撃破', pts: 50000 });
-    const allGroups = ['tower', 'office', 'sign'].every((gname) => stats.groups.has(gname));
+    // 壊れた（倒れた・砕けた）物がある建物群
+    const hitGroups = new Set();
+    for (const e of [...entities, ...brokenRoots]) if (e.root.destroyed > 0 && !e.root.tool) hitGroups.add(e.root.group);
+    const allGroups = ['tower', 'office', 'sign'].every((gname) => hitGroups.has(gname));
     if (allGroups) goals.push({ id: 'reach', label: '三棟連鎖', pts: 30000 });
-    if (!stats.usedFollow && r >= 0.85) goals.push({ id: 'oneshot', label: '一撃全壊', pts: 120000 });
-    else if (r >= 0.85) goals.push({ id: 'zenkai', label: '全壊', pts: 40000 });
-    if (stats.maxCombo >= 30) goals.push({ id: 'combo', label: '大連鎖', pts: 30000 });
+    if (!stats.usedFollow && r >= ZENKAI) goals.push({ id: 'oneshot', label: '一撃全壊', pts: 120000 });
+    else if (r >= ZENKAI) goals.push({ id: 'zenkai', label: '全壊', pts: 40000 });
+    if (stats.maxCombo >= 12) goals.push({ id: 'combo', label: '大連鎖', pts: 30000 });
     stats.bonusPoints = goals.reduce((s, x) => s + x.pts, 0);
     return { goals, score: score(), rate: r };
   }

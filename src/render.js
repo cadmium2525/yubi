@@ -481,7 +481,7 @@ export class Renderer {
     const z = cam.zoom;
     g.setTransform(dpr * z, 0, 0, dpr * z, dpr * (W / 2 - cam.x * z + (cam.sx || 0)), dpr * (H / 2 - cam.y * z + (cam.sy || 0)));
 
-    this.drawDesk(g);
+    this.drawDesk(g, DV);
     this.drawTable(g, DV);
     this.drawDecor(g, DV);
     this.drawTrees(g, DV);
@@ -527,12 +527,14 @@ export class Renderer {
   }
 
   // ジオラマを置いた机（手前に広がる木の天板）
-  drawDesk(g) {
-    const top = 60;
-    const dg = g.createLinearGradient(0, top, 0, top + 900);
-    dg.addColorStop(0, '#4a3324'); dg.addColorStop(0.25, '#5e4230'); dg.addColorStop(1, '#2a1c13');
+  drawDesk(g, DV) {
+    const top = 60, Z = 340;
+    const dg = g.createLinearGradient(0, top + DV.y * Z, 0, top + 900);
+    dg.addColorStop(0, '#3e2b1e'); dg.addColorStop(0.3, '#5e4230'); dg.addColorStop(1, '#2a1c13');
     g.fillStyle = dg;
-    g.fillRect(-3000, top, 8000, 3000);
+    g.beginPath();
+    g.moveTo(-3000, top + DV.y * Z); g.lineTo(5000, top + DV.y * Z); g.lineTo(5000, top + 3000); g.lineTo(-3000, top + 3000);
+    g.closePath(); g.fill();
     // 木目
     g.strokeStyle = 'rgba(0,0,0,0.16)'; g.lineWidth = 2;
     for (let i = 0; i < 9; i++) {

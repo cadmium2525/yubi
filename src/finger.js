@@ -52,15 +52,17 @@ export class Finger {
     g.globalAlpha = this.alpha;
     g.translate(jx, jy);
 
-    // 落ち影（画面の奥へ）
+    // 落ち影（画面の奥へ）：ぼかしフィルタは重いので、太さを変えた半透明を重ねて代わりにする
     g.save();
-    g.globalAlpha = this.alpha * 0.22;
-    g.translate(w * 0.25, w * 0.35);
     g.fillStyle = '#000';
-    g.filter = `blur(${Math.round(w * 0.18)}px)`;
-    this.capsulePath(g, pts, ws);
-    g.fill();
-    g.filter = 'none';
+    for (let i = 0; i < 3; i++) {
+      g.globalAlpha = this.alpha * 0.07;
+      g.save();
+      g.translate(w * 0.25, w * 0.35);
+      this.capsulePath(g, pts, ws.map((x) => x * (1 + i * 0.18)));
+      g.fill();
+      g.restore();
+    }
     g.restore();
 
     // 手の甲・拳（根元の先、画面の外へ続く）

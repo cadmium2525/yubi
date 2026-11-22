@@ -161,6 +161,7 @@ button.sub.danger { color: #ffb3a8; }
 .newbest { font-family: var(--brush); color: var(--shu); font-size: 22px; margin: 2px 0 6px; animation: pop 0.4s ease-out; }
 .result-buttons { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
 #result .note { color: #6a645a; text-shadow: none; }
+#result button.sub { color: var(--ink); background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.25); }
 
 #settings { background: rgba(6, 6, 10, 0.7); z-index: 40; }
 #settings .panel {
@@ -187,6 +188,8 @@ button.sub.danger { color: #ffb3a8; }
 
 /* 狭い画面（スマホ縦） */
 @media (max-width: 560px) {
+  .result-stats { grid-template-columns: 1fr; }
+  .result-stats dd { font-size: 18px; }
   #hud-stats .stat { min-width: 0; padding: 5px 9px 7px; }
   #hud-stats .value { font-size: 18px; }
   #hud-stats .label { font-size: 10px; }
@@ -210,8 +213,13 @@ button.sub.danger { color: #ffb3a8; }
   .steps { margin-bottom: 1.2vh; }
   .steps b { font-size: 20px; }
   .steps li { padding: 3px 10px 4px; }
-  .note { margin-top: 1vh; }
+  .note { margin-top: 1vh; font-size: 11px; }
+  #title .note { display: none; }
   .result-card { padding: 0 16px 10px; }
+  .rank { margin-bottom: 4px; }
+  .result-stats { gap: 2px 12px; margin-bottom: 6px; }
+  .goals li { font-size: 12px; padding: 2px 8px; }
+  #result .note { display: none; }
   #result-ink { aspect-ratio: 3.6; margin: -10px 0 -4px; }
   .result-stats dd { font-size: 16px; }
   .hint { bottom: calc(56px + var(--safe-b)); }
