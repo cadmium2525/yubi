@@ -1,0 +1,72 @@
+{
+ "layers": [
+  {
+   "src": "sine",
+   "freq": [
+    [
+     0,
+     90
+    ],
+    [
+     0.12,
+     42,
+     "exp"
+    ]
+   ],
+   "amp": {
+    "a": 0.001,
+    "d": 0.35
+   },
+   "drive": 6,
+   "gain": 0
+  },
+  {
+   "src": "brown",
+   "filter": {
+    "type": "lp",
+    "freq": [
+     [
+      0,
+      1800
+     ],
+     [
+      0.3,
+      300,
+      "exp"
+     ]
+    ]
+   },
+   "amp": {
+    "a": 0.001,
+    "d": 0.45
+   },
+   "gain": -6,
+   "width": 0.6
+  },
+  {
+   "src": "crackle",
+   "density": 120,
+   "filter": {
+    "type": "bp",
+    "freq": 2200,
+    "q": 0.8
+   },
+   "amp": {
+    "a": 0.002,
+    "d": 0.5
+   },
+   "gain": -16,
+   "width": 0.8
+  }
+ ],
+ "fx": [
+  {
+   "type": "reverb",
+   "size": 1.0,
+   "decay": 1.2,
+   "mix": 0.2
+  }
+ ],
+ "normalize": -1,
+ "seed": 6
+}

@@ -1,0 +1,10 @@
+{
+  "name": "yubi-ippon",
+  "private": true,
+  "type": "module",
+  "description": "指一本。 ワンフィンガー物理破壊シミュレーション（ブラウザゲーム）",
+  "scripts": {
+    "sim": "node tools/sim/sim.mjs",
+    "serve": "python3 -m http.server 8000"
+  }
+}

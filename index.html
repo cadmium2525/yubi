@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>指一本。</title>
+  <meta name="description" content="狙点！ 蓄圧！ 解放！ 指一本で街を崩す、ワンフィンガー物理破壊シミュレーション。ブラウザでそのまま遊べます。">
+  <meta name="theme-color" content="#1d2a44">
+  <meta property="og:title" content="指一本。">
+  <meta property="og:description" content="世界は、たった一指で崩れる。狙点！ 蓄圧！ 解放！">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/ogp.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="preload" href="assets/fonts/yuji-boku-subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="ゲーム画面"></canvas>
+
+    <!-- 遊んでいる間の表示 -->
+    <div id="hud" class="hidden">
+      <div id="hud-stage">
+        <div class="stage-name" id="stage-name">違法建築タワー</div>
+        <div class="best">BEST <span id="best-score">0</span></div>
+      </div>
+      <div id="hud-stats">
+        <div class="stat"><div class="label">SCORE</div><div class="value" id="score">0</div></div>
+        <div class="stat"><div class="label">破壊率</div><div class="value" id="rate">0.0<small>%</small></div><div class="bar"><i id="rate-bar"></i></div></div>
+        <div class="stat combo"><div class="label">連鎖コンボ</div><div class="value" id="combo">×0</div></div>
+      </div>
+      <div id="follow" class="hidden"><b>追撃</b><span>崩壊中にタップ（1回）</span></div>
+      <button id="skip" class="hidden" type="button">スキップ ▶▶</button>
+      <div id="hint" class="hint"></div>
+    </div>
+
+    <div id="corner">
+      <button id="btn-full" type="button" aria-label="全画面" title="全画面">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+      <button id="btn-sound" type="button" aria-label="音のオン・オフ" title="音のオン・オフ">
+        <svg viewBox="0 0 24 24"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16 9l6 6M22 9l-6 6"/></svg>
+      </button>
+      <button id="btn-settings" type="button" aria-label="設定" title="設定">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
+      </button>
+    </div>
+
+    <!-- タイトル -->
+    <section id="title" class="screen">
+      <div class="ribbon"><span>ワンフィンガー</span><span>物理破壊シミュレーション</span></div>
+      <canvas id="logo" aria-label="指一本。"></canvas>
+      <p class="tagline">世界は、たった一指で崩れる。</p>
+      <ol class="steps">
+        <li><b class="ink">狙点！</b><span>崩したい場所を選ぶ</span></li>
+        <li><b class="ink">蓄圧！</b><span>長押しで力を溜める</span></li>
+        <li><b class="ink">解放！</b><span>離してデコピン</span></li>
+      </ol>
+      <button id="start" class="big" type="button">指を置く</button>
+      <p class="note">崩れている途中にもう一度タップすると「追撃」（1回だけ）。<br>溜めすぎると照準がぶれて威力が落ちる。</p>
+    </section>
+
+    <!-- 結果 -->
+    <section id="result" class="screen hidden" aria-live="polite">
+      <div class="result-card">
+        <canvas id="result-ink" aria-hidden="true"></canvas>
+        <div class="rank" id="rank-title"></div>
+        <dl class="result-stats">
+          <div><dt>スコア</dt><dd id="r-score">0</dd></div>
+          <div><dt>破壊率</dt><dd id="r-rate">0%</dd></div>
+          <div><dt>最大連鎖</dt><dd id="r-chain">0</dd></div>
+          <div><dt>被害総額</dt><dd id="r-damage">0</dd></div>
+        </dl>
+        <ul class="goals" id="r-goals"></ul>
+        <p class="newbest hidden" id="r-best">自己ベスト更新！</p>
+        <div class="result-buttons">
+          <button id="retry" class="big" type="button">再挑戦</button>
+          <button id="share" class="sub" type="button">結果を共有</button>
+        </div>
+        <p class="note">R キー・スペースでもすぐ再挑戦。被害総額は架空の単位「デコ」です。</p>
+      </div>
+    </section>
+
+    <!-- 設定 -->
+    <section id="settings" class="screen hidden">
+      <div class="panel">
+        <h2 class="ink">設定</h2>
+        <label class="row">BGM の音量<input type="range" id="set-bgm" min="0" max="1" step="0.05"></label>
+        <label class="row">効果音の音量<input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+        <label class="row check"><input type="checkbox" id="set-fx">揺れとフラッシュを弱める</label>
+        <label class="row check"><input type="checkbox" id="set-hints">弱点のヒントを表示する</label>
+        <label class="row">画質
+          <select id="set-quality"><option value="auto">自動</option><option value="high">高</option><option value="low">軽量</option></select>
+        </label>
+        <button id="set-reset" class="sub danger" type="button">記録を消す</button>
+        <button id="set-close" class="big" type="button">閉じる</button>
+        <details class="credits">
+          <summary>クレジット</summary>
+          <p>物理演算：Matter.js 0.20.0（MIT License）<br>筆文字：Yuji Boku（SIL Open Font License 1.1, The Yuji Project Authors）<br>BGM・効果音：「かなでる」（mp4mp3）で自作<br>画像：すべてプログラムで描画</p>
+        </details>
+      </div>
+    </section>
+
+    <div id="rotate" class="hidden">横向きにすると、街全体が大きく見えます</div>
+    <noscript><p class="noscript">このゲームを遊ぶには JavaScript を有効にしてください。</p></noscript>
+  </div>
+
+  <script src="vendor/matter-js/matter.min.js"></script>
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>

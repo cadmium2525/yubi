@@ -1,0 +1,5 @@
+node_modules/
+tools/audio/.tmp/
+tools/shots/out/
+*.log
+.DS_Store

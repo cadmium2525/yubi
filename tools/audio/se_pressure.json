@@ -1,0 +1,84 @@
+{
+ "layers": [
+  {
+   "src": "sine",
+   "freq": 48,
+   "amp": [
+    [
+     0,
+     1
+    ],
+    [
+     6,
+     1
+    ]
+   ],
+   "len": 6,
+   "gain": -4
+  },
+  {
+   "src": "saw",
+   "freq": 96,
+   "amp": [
+    [
+     0,
+     1
+    ],
+    [
+     6,
+     1
+    ]
+   ],
+   "len": 6,
+   "filter": {
+    "type": "lp",
+    "freq": 420,
+    "q": 2
+   },
+   "gain": -14
+  },
+  {
+   "src": "brown",
+   "amp": [
+    [
+     0,
+     1
+    ],
+    [
+     6,
+     1
+    ]
+   ],
+   "len": 6,
+   "filter": {
+    "type": "lp",
+    "freq": 260
+   },
+   "gain": -8,
+   "width": 0.6
+  },
+  {
+   "src": "pink",
+   "amp": [
+    [
+     0,
+     1
+    ],
+    [
+     6,
+     1
+    ]
+   ],
+   "len": 6,
+   "filter": {
+    "type": "bp",
+    "freq": 1800,
+    "q": 3
+   },
+   "gain": -26,
+   "width": 0.8
+  }
+ ],
+ "normalize": -4,
+ "seed": 4
+}

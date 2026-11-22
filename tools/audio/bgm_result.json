@@ -1,0 +1,157 @@
+{
+ "name": "指一本。 決着",
+ "bpm": 88,
+ "sig": [
+  4,
+  4
+ ],
+ "bars": 3,
+ "key": "D major",
+ "sends": {
+  "reverb": {
+   "size": 1.8,
+   "decay": 3.2,
+   "damp": 6500
+  }
+ },
+ "master": {
+  "loudness": -16,
+  "ceiling": -1
+ },
+ "tracks": [
+  {
+   "id": "taiko",
+   "name": "和太鼓",
+   "kit": "taiko",
+   "type": "drums",
+   "sends": {
+    "reverb": 0.25
+   },
+   "clips": [
+    {
+     "at": 0,
+     "len": 4,
+     "grid": {
+      "shime": "xxxxxxxxXXXXXXXX",
+      "odaiko": "............X..."
+     },
+     "res": 0.25
+    },
+    {
+     "at": 4,
+     "len": 4,
+     "grid": {
+      "odaiko": "X.......X.......",
+      "kane": "X..............."
+     },
+     "res": 0.25
+    }
+   ]
+  },
+  {
+   "id": "brass",
+   "name": "金管",
+   "inst": "brass",
+   "volume": -4,
+   "sends": {
+    "reverb": 0.35
+   },
+   "clips": [
+    {
+     "at": 0,
+     "notes": [
+      [
+       3,
+       "A3",
+       0.5,
+       0.7
+      ],
+      [
+       3.5,
+       "C#4",
+       0.5,
+       0.75
+      ],
+      [
+       4,
+       [
+        "D3",
+        "A3",
+        "D4",
+        "F#4",
+        "A4"
+       ],
+       6,
+       0.9
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "str",
+   "name": "弦",
+   "inst": "strings",
+   "volume": -6,
+   "sends": {
+    "reverb": 0.4
+   },
+   "clips": [
+    {
+     "at": 4,
+     "notes": [
+      [
+       0,
+       [
+        "D3",
+        "A3",
+        "F#4",
+        "D5"
+       ],
+       7,
+       0.7
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "timp",
+   "name": "ティンパニ",
+   "inst": "timpani",
+   "volume": -3,
+   "clips": [
+    {
+     "at": 4,
+     "notes": [
+      [
+       0,
+       "D2",
+       1,
+       1.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sub",
+   "name": "低音",
+   "inst": "subbass",
+   "volume": -5,
+   "clips": [
+    {
+     "at": 4,
+     "notes": [
+      [
+       0,
+       "D1",
+       6,
+       0.9
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}
