@@ -22,7 +22,7 @@
 
     <!-- 遊んでいる間の表示 -->
     <div id="hud" class="hidden">
-      <div id="hud-stage">
+      <div id="hud-stage" title="ステージ選択へ">
         <div class="stage-name" id="stage-name">違法建築タワー</div>
         <div class="best">BEST <span id="best-score">0</span></div>
       </div>
@@ -35,6 +35,8 @@
       <button id="skip" class="hidden" type="button">スキップ ▶▶</button>
       <div id="hint" class="hint"></div>
     </div>
+
+    <div id="replay-badge" class="hidden">REPLAY</div>
 
     <div id="corner">
       <button id="btn-full" type="button" aria-label="全画面" title="全画面">
@@ -66,7 +68,9 @@
     <section id="result" class="screen hidden" aria-live="polite">
       <div class="result-card">
         <canvas id="result-ink" aria-hidden="true"></canvas>
+        <div class="stars-big" id="r-stars"></div>
         <div class="rank" id="rank-title"></div>
+        <div class="move ink" id="r-move"></div>
         <dl class="result-stats">
           <div><dt>スコア</dt><dd id="r-score">0</dd></div>
           <div><dt>破壊率</dt><dd id="r-rate">0%</dd></div>
@@ -74,13 +78,30 @@
           <div><dt>被害総額</dt><dd id="r-damage">0</dd></div>
         </dl>
         <ul class="goals" id="r-goals"></ul>
+        <p class="headline" id="r-headline"></p>
         <p class="newbest hidden" id="r-best">自己ベスト更新！</p>
         <div class="result-buttons">
           <button id="retry" class="big" type="button">再挑戦</button>
+          <button id="next" class="big alt hidden" type="button">次の景へ</button>
+        </div>
+        <div class="result-buttons small">
+          <button id="replay" class="sub" type="button">▶ リプレイ</button>
+          <button id="to-stages" class="sub" type="button">ステージ選択</button>
           <button id="share" class="sub" type="button">結果を共有</button>
         </div>
         <p class="note">R キー・スペースでもすぐ再挑戦。被害総額は架空の単位「デコ」です。</p>
       </div>
+    </section>
+
+    <!-- ステージ選択 -->
+    <section id="stages" class="screen hidden">
+      <h2 class="ink stages-title">どこを崩す？</h2>
+      <div id="stage-list" class="stage-list"></div>
+      <details class="ach">
+        <summary id="ach-count">指の記録</summary>
+        <ul id="ach-list"></ul>
+      </details>
+      <button id="stages-back" class="sub" type="button">タイトルへ</button>
     </section>
 
     <!-- 設定 -->
@@ -90,6 +111,7 @@
         <label class="row">BGM の音量<input type="range" id="set-bgm" min="0" max="1" step="0.05"></label>
         <label class="row">効果音の音量<input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
         <label class="row check"><input type="checkbox" id="set-fx">揺れとフラッシュを弱める</label>
+        <label class="row check"><input type="checkbox" id="set-assist">狙いアシスト（弱点・物体に吸い付く）</label>
         <label class="row check"><input type="checkbox" id="set-hints">弱点のヒントを表示する</label>
         <label class="row">画質
           <select id="set-quality"><option value="auto">自動</option><option value="high">高</option><option value="low">軽量</option></select>

@@ -10,6 +10,7 @@ const DEFAULTS = {
   settings: { bgm: 0.55, sfx: 0.9, reduceFx: false, quality: 'auto', hints: null, muted: false },
   best: {},
   plays: 0,
+  ach: {},
 };
 
 function read() {
@@ -49,4 +50,7 @@ export const store = {
   get plays() { return data.plays; },
   addPlay() { data.plays += 1; write(); },
   reset() { data = clone(DEFAULTS); write(); },
+  /** 実績：初めてなら true */
+  unlock(id) { if (!data.ach) data.ach = {}; if (data.ach[id]) return false; data.ach[id] = Date.now(); write(); return true; },
+  has(id) { return !!data.ach?.[id]; },
 };

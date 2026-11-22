@@ -8,6 +8,11 @@ export const MATERIALS = {
   concrete: { density: 0.0016, friction: 0.85, restitution: 0.02, strength: 650, crush: 1.08, inertia: 0.6, sound: 'concrete', chips: ['#c9c1b4', '#a39b8f', '#7e776d'], dust: '#b8afa2' },
   ballast: { density: 0.006, friction: 0.9, restitution: 0.01, strength: 2000, crush: 9, sound: 'concrete', chips: ['#9c968c', '#77716a'], dust: '#a49c92' },
   office: { density: 0.0014, friction: 0.8, restitution: 0.02, strength: 900, crush: 0.95, inertia: 0.5, sound: 'glass', chips: ['#a9b9c4', '#cfe8f5', '#7d8a93', '#ffffff'], dust: '#b8c2c8' },
+  shop: { density: 0.0014, friction: 0.8, restitution: 0.03, strength: 700, crush: 1.0, inertia: 0.3, sound: 'concrete', chips: ['#d9cbb0', '#9b8f7c', '#c44', '#777'], dust: '#b8afa2' },
+  stone: { density: 0.0022, friction: 0.75, restitution: 0.01, strength: 900, crush: 1.0, sound: 'concrete', chips: ['#8f8a80', '#6d6962', '#a9a398'], dust: '#a19b90' },
+  castle: { density: 0.0011, friction: 0.85, restitution: 0.02, strength: 480, crush: 1.0, inertia: 0.7, sound: 'wood', chips: ['#f2efe6', '#2b2b2b', '#6b5a48'], dust: '#d8d2c6' },
+  roof: { density: 0.0016, friction: 0.9, restitution: 0.02, strength: 520, crush: 1.0, sound: 'wood', chips: ['#3d4148', '#5a5f68', '#222'], dust: '#8f949b' },
+  gold: { density: 0.0012, friction: 0.7, restitution: 0.1, strength: 400, crush: 1.05, inertia: 0.5, sound: 'metal', chips: ['#ffd35a', '#e0a91f', '#fff2b0'], dust: '#e8cf8a' },
   pillar: { density: 0.0024, friction: 0.08, restitution: 0.02, strength: 300, crush: 0.55, sound: 'concrete', chips: ['#bdb6ab', '#8c857b'], dust: '#b0a89c' },
   wood: { density: 0.0009, friction: 0.8, restitution: 0.05, strength: 260, crush: 0.85, sound: 'wood', chips: ['#b48a5c', '#8a6440', '#d1a874'], dust: '#a88d6c' },
   glass: { density: 0.0012, friction: 0.5, restitution: 0.05, strength: 120, crush: 0.5, sound: 'glass', chips: ['#cfe8f5', '#9cc8e0', '#ffffff'], dust: '#d8eef8' },
@@ -147,6 +152,10 @@ export function createPhysics(M, stage, opts = {}) {
         stats.totalDamage += ent.price;
       }
     }
+    for (const rp of stage.ropes || []) {
+      const ent = entities.find((e) => e.id === rp.id);
+      if (ent) { ent.ropeC = M.Constraint.create({ pointA: { ...rp.anchor }, bodyB: ent.body, stiffness: 0.9, damping: 0.02, length: Math.hypot(ent.body.position.x - rp.anchor.x, ent.body.position.y - rp.anchor.y) }); Composite.add(world, ent.ropeC); }
+    }
     // 置いた直後の小さな沈み込みを先に済ませてから、全体を眠らせる（解放するまで完全に静止）
     for (let i = 0; i < 90; i++) Engine.update(engine, 1000 / 60);
     for (const e of entities) {
@@ -157,6 +166,9 @@ export function createPhysics(M, stage, opts = {}) {
     }
   }
   build();
+
+  // 吊るした物（クレーンの鉄球など）：ロープは伸びない拘束
+  const ropes = entities.filter((e) => e.ropeC).map((e) => ({ anchor: e.ropeC.pointA, ent: e }));
 
   // ── ユーティリティ ──
   const dynamicBodies = () => entities.map((e) => e.body);
@@ -534,7 +546,7 @@ export function createPhysics(M, stage, opts = {}) {
       return { hit: null };
     }
     const ent = hit.ent;
-    const J = impulseFor(ent.body, TUNING.flickSpeed * power);
+    const J = impulseFor(ent.body, TUNING.flickSpeed * power * (ent.def.flickBoost || 1));
     activate(ent, 'flick');
     stats.groups.add(ent.group);
     applyImpulse(ent.body, hit.point, { x: dir.x * J, y: dir.y * J });
@@ -595,14 +607,16 @@ export function createPhysics(M, stage, opts = {}) {
   function finalize() {
     const goals = [];
     const r = rate();
-    if (stats.targetDown) goals.push({ id: 'target', label: '看板撃破', pts: 50000 });
+    if (stats.targetDown) goals.push({ id: 'target', label: stage.targetLabel || '看板撃破', pts: 50000 });
     // 壊れた（倒れた・砕けた）物がある建物群
     const hitGroups = new Set();
     for (const e of [...entities, ...brokenRoots]) if (e.root.destroyed > 0 && !e.root.tool) hitGroups.add(e.root.group);
-    const allGroups = ['tower', 'office', 'sign'].every((gname) => hitGroups.has(gname));
-    if (allGroups) goals.push({ id: 'reach', label: '三棟連鎖', pts: 30000 });
-    if (!stats.usedFollow && r >= ZENKAI) goals.push({ id: 'oneshot', label: '一撃全壊', pts: 120000 });
-    else if (r >= ZENKAI) goals.push({ id: 'zenkai', label: '全壊', pts: 40000 });
+    const reach = stage.reach || { groups: ['tower', 'office', 'sign'], label: '三棟連鎖' };
+    const allGroups = reach.groups.every((gname) => hitGroups.has(gname));
+    if (allGroups) goals.push({ id: 'reach', label: reach.label, pts: 30000 });
+    const zk = stage.zenkai ?? ZENKAI;
+    if (!stats.usedFollow && r >= zk) goals.push({ id: 'oneshot', label: '一撃全壊', pts: 120000 });
+    else if (r >= zk) goals.push({ id: 'zenkai', label: '全壊', pts: 40000 });
     if (stats.maxCombo >= 12) goals.push({ id: 'combo', label: '大連鎖', pts: 30000 });
     stats.bonusPoints = goals.reduce((s, x) => s + x.pts, 0);
     return { goals, score: score(), rate: r };
@@ -611,7 +625,7 @@ export function createPhysics(M, stage, opts = {}) {
   function score() { return stats.destroyPoints + stats.chainPoints + stats.bonusPoints; }
 
   return {
-    M, engine, world, entities, events, stats, ground, statics, stage,
+    M, engine, world, entities, events, stats, ground, statics, stage, ropes,
     get time() { return time; },
     get started() { return started; },
     setBudget(q) { bodyBudget = QUALITY_BUDGET[q] ?? bodyBudget; },

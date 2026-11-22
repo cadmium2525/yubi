@@ -2,7 +2,7 @@
 import json, sys
 from PIL import Image, ImageDraw
 panels = json.load(open(sys.argv[1]))
-W, H, ox, oy, S = 1440, 560, 40, 500, 0.5
+W, H, ox, oy, S = 1680, 700, 60, 640, 0.42
 cols = 2
 rows = (len(panels) + cols - 1) // cols
 im = Image.new('RGB', (int(W * cols * S), int(H * rows * S)), '#f4f1ea')

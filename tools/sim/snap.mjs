@@ -6,7 +6,9 @@ import { createRequire } from 'node:module';
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createPhysics } from '../../src/physics.js';
-import { STAGE_TOWER } from '../../src/stage.js';
+import { STAGES, makeDailyStage } from '../../src/stage.js';
+const SID = process.env.STAGE || 'tower';
+const STAGE_TOWER = SID.startsWith('daily:') ? makeDailyStage(SID.slice(6)) : STAGES.find((s) => s.id === SID);
 const require = createRequire(import.meta.url);
 const M = require('../../vendor/matter-js/matter.min.js');
 M.Common.warnOnce = () => {};
@@ -32,8 +34,8 @@ if (part) {
   const pp = ent.body.parts.find((p) => p.label === part);
   pt = { x: pp.position.x + Number(dx) * (pp.bounds.max.x - pp.bounds.min.x) / 2, y: pp.position.y + Number(dy) * (pp.bounds.max.y - pp.bounds.min.y) / 2 };
 } else {
-  const w = ent.w ?? ent.r * 2, h = ent.h ?? ent.r * 2;
-  pt = { x: ent.body.position.x + Number(dx) * w / 2, y: ent.body.position.y + Number(dy) * h / 2 };
+  const bb = ent.body.bounds;
+  pt = { x: (bb.min.x + bb.max.x) / 2 + Number(dx) * (bb.max.x - bb.min.x) / 2, y: (bb.min.y + bb.max.y) / 2 + Number(dy) * (bb.max.y - bb.min.y) / 2 };
 }
 const hit = P.pick(pt, 26);
 const dir = P.flickDir(hit.ent, hit.point);

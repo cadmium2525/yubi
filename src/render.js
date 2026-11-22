@@ -10,6 +10,7 @@ const TS = 2; // テクスチャの解像度（ワールド 1 単位あたりの
 const DEPTH = {
   building: 92, office: 84, pillar: 14, slab: 104, container: 74, vending: 34, car: 46, tank: 50,
   roofsign: 10, shack: 64, crate: 42, roofbox: 52, ball: 0, base: 70, pole: 16, board: 14,
+  shop: 74, stone: 80, castle: 112, castleroof: 134, gold: 22, drum: 30, bus: 58, post: 18, beam: 22, lamp: 34,
 };
 
 export function depthOf(ent, part) {
@@ -222,6 +223,115 @@ export function makeTexture(style, w, h, seed = 1, part = null) {
       g.beginPath(); g.moveTo(3, 3); g.lineTo(w - 3, h - 3); g.moveTo(w - 3, 3); g.lineTo(3, h - 3); g.stroke();
       break;
     }
+    case 'shop': {
+      // シャッターの下りた商店
+      g.fillStyle = col; g.fillRect(0, 0, w, h);
+      const sh = Math.min(70, h * 0.38);
+      g.fillStyle = '#b9bcc0'; g.fillRect(w * 0.06, h - sh, w * 0.88, sh);
+      g.fillStyle = 'rgba(0,0,0,0.18)';
+      for (let y = h - sh + 3; y < h; y += 4) g.fillRect(w * 0.06, y, w * 0.88, 1.2);
+      // 庇と看板
+      g.fillStyle = style.sign?.bg || '#7a1e2a'; g.fillRect(0, h - sh - 16, w, 14);
+      g.fillStyle = '#fff'; g.font = `bold ${Math.round(Math.min(11, w * 0.2))}px ${UI_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(style.sign?.text || '', w / 2, h - sh - 9, w - 4);
+      // 二階から上の窓
+      windowsGrid(g, 0, 0, w, h - sh - 18, Math.max(1, style.rows || 2), 1, r, { lit: 0.3 });
+      // 縦看板
+      if (h > 150) {
+        g.fillStyle = '#f3efe4'; g.fillRect(w * 0.78, h * 0.08, w * 0.18, h * 0.32);
+        g.fillStyle = style.sign?.bg || '#7a1e2a';
+        g.font = `bold ${Math.round(w * 0.13)}px ${UI_FONT}`;
+        [...(style.sign?.text || '')].slice(0, 4).forEach((ch, i) => g.fillText(ch, w * 0.87, h * 0.12 + i * w * 0.15));
+      }
+      grime(g, w, h, r, 0.2);
+      g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 1.5; g.strokeRect(0.75, 0.75, w - 1.5, h - 1.5);
+      break;
+    }
+    case 'bus': {
+      g.fillStyle = col; g.fillRect(2, 4, w - 4, h * 0.72);
+      g.fillStyle = '#f3f1ea'; g.fillRect(2, 4, w - 4, h * 0.2);
+      g.fillStyle = '#5d7d96';
+      for (let x = 8; x < w - 14; x += 16) g.fillRect(x, h * 0.28, 12, h * 0.22);
+      g.fillStyle = '#ffe28a'; g.fillRect(w - 6, h * 0.55, 4, 5);
+      g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 1.2; g.strokeRect(2, 4, w - 4, h * 0.72);
+      g.fillStyle = '#1d1d1d';
+      for (const x of [w * 0.18, w * 0.82]) { g.beginPath(); g.arc(x, h * 0.8, h * 0.19, 0, Math.PI * 2); g.fill(); }
+      break;
+    }
+    case 'stone': {
+      g.fillStyle = '#8f8a80'; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 4; i++) {
+        g.fillStyle = `rgba(${150 + r() * 40 | 0},${145 + r() * 35 | 0},${130 + r() * 30 | 0},0.7)`;
+        g.beginPath(); g.ellipse(w * (0.2 + r() * 0.6), h * (0.2 + r() * 0.6), w * (0.15 + r() * 0.2), h * (0.15 + r() * 0.2), r() * 3, 0, Math.PI * 2); g.fill();
+      }
+      g.strokeStyle = 'rgba(40,36,30,0.7)'; g.lineWidth = 2; g.strokeRect(1, 1, w - 2, h - 2);
+      g.fillStyle = 'rgba(255,255,255,0.15)'; g.fillRect(2, 2, w - 4, 3);
+      break;
+    }
+    case 'castle': {
+      g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#2b2b2b'; g.fillRect(0, h * 0.78, w, h * 0.22);
+      const n = style.cols || 4;
+      for (let i = 0; i < n; i++) {
+        const x = (w / n) * (i + 0.5);
+        g.fillStyle = '#3a3027'; g.fillRect(x - 6, h * 0.25, 12, h * 0.34);
+        g.fillStyle = '#6b5a48'; for (let k = 0; k < 3; k++) g.fillRect(x - 5 + k * 4, h * 0.25, 1.5, h * 0.34);
+      }
+      g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 1.5; g.strokeRect(0.75, 0.75, w - 1.5, h - 1.5);
+      break;
+    }
+    case 'castleroof': {
+      const gr = g.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, '#6b717b'); gr.addColorStop(1, '#2d3138');
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      g.fillStyle = 'rgba(255,255,255,0.18)';
+      for (let x = 2; x < w; x += 6) g.fillRect(x, 1, 2, h - 2);
+      g.fillStyle = '#d8dde3'; g.fillRect(0, 0, w, 2);
+      break;
+    }
+    case 'gold': {
+      g.clearRect(0, 0, w, h);
+      const gg = g.createLinearGradient(0, 0, w, h);
+      gg.addColorStop(0, '#fff2b0'); gg.addColorStop(0.5, '#f2c230'); gg.addColorStop(1, '#a8740f');
+      g.fillStyle = gg;
+      // しゃちほこ（反り返った魚）
+      g.beginPath();
+      g.moveTo(w * 0.15, h); g.quadraticCurveTo(w * 0.05, h * 0.35, w * 0.45, h * 0.3);
+      g.quadraticCurveTo(w * 0.75, h * 0.25, w * 0.8, h * 0.02);
+      g.lineTo(w * 0.98, h * 0.2); g.quadraticCurveTo(w * 0.85, h * 0.45, w * 0.95, h);
+      g.closePath(); g.fill();
+      g.strokeStyle = '#7a520a'; g.lineWidth = 1.2; g.stroke();
+      g.fillStyle = '#2b1d05'; g.beginPath(); g.arc(w * 0.3, h * 0.55, 1.6, 0, Math.PI * 2); g.fill();
+      break;
+    }
+    case 'drum': {
+      const gr = g.createLinearGradient(0, 0, w, 0);
+      gr.addColorStop(0, shade(col, 0.6)); gr.addColorStop(0.45, shade(col, 1.25)); gr.addColorStop(1, shade(col, 0.55));
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      g.fillStyle = 'rgba(0,0,0,0.3)'; g.fillRect(0, h * 0.3, w, 2); g.fillRect(0, h * 0.66, w, 2);
+      break;
+    }
+    case 'post': {
+      g.fillStyle = '#7d878f'; g.fillRect(0, 0, w, h);
+      g.fillStyle = 'rgba(255,255,255,0.2)'; g.fillRect(w * 0.2, 0, w * 0.2, h);
+      g.strokeStyle = 'rgba(0,0,0,0.5)'; g.strokeRect(0.5, 0.5, w - 1, h - 1);
+      break;
+    }
+    case 'beam': {
+      g.fillStyle = '#c4161c'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#ffe9a8'; g.fillRect(3, 3, w - 6, h - 6);
+      g.fillStyle = '#7a1e2a'; g.font = `bold ${Math.round(h * 0.5)}px ${UI_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(style.text || '', w / 2, h / 2 + 1, w - 12);
+      // 提灯
+      for (let x = 14; x < w; x += 34) { g.fillStyle = '#e8452c'; g.beginPath(); g.ellipse(x, h - 2, 5, 7, 0, 0, Math.PI * 2); g.fill(); }
+      break;
+    }
+    case 'lamp': {
+      g.fillStyle = '#5e676e'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#fff6c8';
+      for (let i = 0; i < 4; i++) g.fillRect(4 + i * (w - 8) / 4, 4, (w - 8) / 4 - 3, h - 8);
+      break;
+    }
     case 'pole': {
       g.fillStyle = '#6f7a82'; g.fillRect(0, 0, w, h);
       g.strokeStyle = '#47515a'; g.lineWidth = 1.2;
@@ -262,6 +372,8 @@ function faceColors(style, part) {
     building: style.color, shack: style.color, container: style.color, vending: style.color, car: style.color,
     pillar: '#b5afa4', slab: '#b5afa4', base: '#a8a296', tank: '#9aa5ad', roofsign: '#c4161c', roofbox: style.color,
     crate: '#a67c50', pole: '#6f7a82', board: '#e7e1d2',
+    shop: style.color, stone: '#8f8a80', castle: '#efece3', castleroof: '#4a4f57', gold: '#e5b52a', drum: style.color, bus: style.color,
+    post: '#7d878f', beam: '#c4161c', lamp: '#5e676e',
   }[kind] || style.color || '#bbb';
   return { side: shade(base, 0.62), top: shade(base, 1.08), front: base };
 }
@@ -374,6 +486,7 @@ export class Renderer {
 
   setStage(stage) {
     this.stage = stage;
+    this.tex.clear();
     const r = rng(99);
     // 奥の飾りのビル（物理なし）
     this.decorB = [];
@@ -503,6 +616,7 @@ export class Renderer {
     g.globalAlpha = 1;
 
     // ── 側面（押し出し） → 正面 ──
+    this.drawRopes(g, P, DV);
     for (const e of P.entities) this.drawSides(g, e, DV);
     for (const e of P.entities) this.drawFront(g, e, s.highlight === e);
 
@@ -575,10 +689,11 @@ export class Renderer {
     g.fillStyle = '#3d2f22';
     g.beginPath(); g.moveTo(x1, 0); g.lineTo(x1 + DV.x * D, DV.y * D); g.lineTo(x1 + DV.x * D, DV.y * D + 60); g.lineTo(x1, 60); g.closePath(); g.fill();
     // 銘板
-    g.fillStyle = '#c9a85a'; g.fillRect(560, 14, 200, 30);
-    g.strokeStyle = '#7d6328'; g.lineWidth = 2; g.strokeRect(560, 14, 200, 30);
+    const plaqueX = (this.stage.bounds.x0 + this.stage.bounds.x1) / 2 - 100;
+    g.fillStyle = '#c9a85a'; g.fillRect(plaqueX, 14, 200, 30);
+    g.strokeStyle = '#7d6328'; g.lineWidth = 2; g.strokeRect(plaqueX, 14, 200, 30);
     g.fillStyle = '#3a2a10'; g.font = `bold 15px ${UI_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(`第一景　${this.stage.name}`, 660, 30);
+    g.fillText(`${this.stage.label || ''}　${this.stage.name}`, plaqueX + 100, 30);
   }
 
   drawDecor(g, DV) {
@@ -648,7 +763,49 @@ export class Renderer {
     g.closePath(); g.fill();
   }
 
+  // 吊り鉄球のクレーンとロープ（手前の層）
+  drawRopes(g, P, DV) {
+    const gt = this.stage.decor?.gantry;
+    if (gt) {
+      g.strokeStyle = '#d9a21b'; g.lineWidth = 5;
+      g.beginPath();
+      g.moveTo(gt.x - 14, 0); g.lineTo(gt.x - 14, gt.top); g.moveTo(gt.x + 14, 0); g.lineTo(gt.x + 14, gt.top);
+      for (let y = 0; y > gt.top; y -= 40) { g.moveTo(gt.x - 14, y); g.lineTo(gt.x + 14, y - 40); }
+      g.moveTo(gt.x - 60, gt.top); g.lineTo(gt.tip + 30, gt.top); g.moveTo(gt.x - 60, gt.top + 14); g.lineTo(gt.tip + 30, gt.top + 14);
+      g.stroke();
+      g.fillStyle = '#555'; g.fillRect(gt.x - 70, gt.top - 6, 40, 30);
+    }
+    for (const rp of P.ropes || []) {
+      const b = rp.ent.body;
+      g.strokeStyle = '#2a2a2a'; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(rp.anchor.x, rp.anchor.y); g.lineTo(b.position.x, b.position.y - (rp.ent.r || 0)); g.stroke();
+      g.fillStyle = '#444'; g.fillRect(rp.anchor.x - 8, rp.anchor.y - 4, 16, 10);
+    }
+  }
+
   drawTrees(g, DV) {
+    // 提灯の列（商店街）
+    if (this.stage.decor?.lanterns) {
+      const z = 100, oy = DV.y * z, ox = DV.x * z;
+      g.strokeStyle = '#333'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(this.stage.ground.x0 + ox, oy - 300); g.quadraticCurveTo(700 + ox, oy - 250, this.stage.ground.x1 + ox, oy - 300); g.stroke();
+      for (let x = this.stage.ground.x0 + 40; x < this.stage.ground.x1; x += 70) {
+        const t = (x - this.stage.ground.x0) / (this.stage.ground.x1 - this.stage.ground.x0);
+        const y = oy - 300 + 4 * 50 * t * (1 - t) + 10;
+        g.fillStyle = (x / 70) % 2 < 1 ? '#e8452c' : '#f3e3b8';
+        g.beginPath(); g.ellipse(x + ox, y, 7, 10, 0, 0, Math.PI * 2); g.fill();
+      }
+    }
+    // 松（天守閣）
+    if (this.stage.decor?.pines) {
+      for (const x of [200, 380, 960, 1300]) {
+        const z = 150, ox = x + DV.x * z, oy = DV.y * z;
+        g.fillStyle = '#4a3528'; g.fillRect(ox - 4, oy - 60, 8, 60);
+        for (const [dx, dy, rw] of [[-24, -58, 30], [18, -74, 26], [-6, -92, 22]]) {
+          g.fillStyle = '#2f5a35'; g.beginPath(); g.ellipse(ox + dx, oy + dy, rw, 10, 0, 0, Math.PI * 2); g.fill();
+        }
+      }
+    }
     for (const x of this.stage.decor?.trees || []) {
       const z = 135, ox = x + DV.x * z, oy = DV.y * z;
       g.fillStyle = '#5b4030'; g.fillRect(ox - 3, oy - 34, 6, 34);

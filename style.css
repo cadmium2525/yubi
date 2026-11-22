@@ -186,6 +186,47 @@ button.sub.danger { color: #ffb3a8; }
 }
 .noscript { position: absolute; inset: 0; display: grid; place-items: center; background: #111; color: #fff; margin: 0; }
 
+/* ステージ選択 */
+#stages { background: radial-gradient(ellipse at 50% 40%, rgba(10,10,14,0.35), rgba(8,8,12,0.8)); gap: 12px; }
+.stages-title { font-size: clamp(30px, 5vw, 48px); margin: 0; text-shadow: 0 2px 8px #000; }
+.stage-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; width: min(96vw, 1100px); }
+.stage-card {
+  background: var(--paper); color: var(--ink); border: 0; border-radius: 3px; padding: 10px 12px 12px; text-align: left;
+  display: flex; flex-direction: column; gap: 3px; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  border-top: 5px solid var(--shu); transition: transform 0.1s;
+}
+.stage-card:hover:not([disabled]) { transform: translateY(-3px); }
+.stage-card:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.stage-card .label { font-size: 12px; color: #7a6f60; }
+.stage-card b { font-size: 26px; line-height: 1.15; }
+.stage-card .stars { color: #c98a00; font-size: 18px; letter-spacing: 2px; }
+.stage-card .intro { font-size: 12px; color: #4a453d; line-height: 1.5; min-height: 3em; }
+.stage-card .best { font-size: 12px; font-weight: 700; color: #6b2a20; }
+.stage-card.locked { opacity: 0.5; cursor: not-allowed; border-top-color: #777; }
+.stage-card.daily { border-top-color: #1f6fb3; background: #eef3f7; }
+#hud-stage { pointer-events: auto; cursor: pointer; }
+#replay-badge {
+  position: absolute; z-index: 25; pointer-events: none; top: calc(70px + var(--safe-t)); left: 50%; transform: translateX(-50%);
+  font-weight: 900; letter-spacing: 0.3em; color: #fff; background: rgba(200,20,20,0.85); padding: 4px 14px; border-radius: 2px;
+  animation: blink 0.8s ease-in-out infinite alternate;
+}
+.stars-big { color: #c98a00; font-size: 26px; letter-spacing: 4px; margin: -4px 0 2px; }
+.move { font-size: 19px; color: var(--ink); margin: 2px 0 6px; }
+.headline {
+  font-size: 13px; font-weight: 800; background: #fff; border: 1px solid #222; padding: 5px 8px; margin: 4px 0 8px;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+}
+button.big.alt { background: #1f3f6a; box-shadow: 0 5px 0 #0e2440, 0 10px 24px rgba(0,0,0,0.4); }
+.result-buttons.small { margin-top: 8px; }
+
+details.ach { width: min(96vw, 1100px); text-align: left; color: var(--text); }
+details.ach summary { cursor: pointer; font-family: var(--brush); font-size: 20px; text-shadow: 0 1px 4px #000; }
+#ach-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 6px; }
+#ach-list li { background: rgba(20,22,28,0.8); border: 1px solid var(--panel-line); padding: 5px 8px; border-radius: 3px; display: flex; flex-direction: column; }
+#ach-list li b { font-size: 14px; color: #888; }
+#ach-list li.on b { color: var(--gold); }
+#ach-list li span { font-size: 11px; color: var(--muted); }
+
 /* 狭い画面（スマホ縦） */
 @media (max-width: 560px) {
   .result-stats { grid-template-columns: 1fr; }
@@ -220,7 +261,22 @@ button.sub.danger { color: #ffb3a8; }
   .result-stats { gap: 2px 12px; margin-bottom: 6px; }
   .goals li { font-size: 12px; padding: 2px 8px; }
   #result .note { display: none; }
-  #result-ink { aspect-ratio: 3.6; margin: -10px 0 -4px; }
+  .headline { display: none; }
+  .stage-list { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .stage-card .intro { display: none; }
+  .stage-card b { font-size: 20px; }
+  #result-ink { aspect-ratio: 5; margin: -6px 0 -4px; }
+  .stars-big { font-size: 16px; margin: 0; }
+  .rank { font-size: 14px; margin: 0; }
+  .move { font-size: 15px; margin: 0 0 4px; }
+  .headline { display: none; }
+  .newbest { font-size: 16px; margin: 0 0 4px; }
+  .result-card button.big { font-size: 20px; padding: 6px 26px 8px; }
+  .result-buttons.small { margin-top: 4px; }
+  .result-buttons.small button { padding: 6px 12px; }
+  .stage-card .intro { display: none; }
+  .stage-card b { font-size: 20px; }
+  .stages-title { font-size: 26px; }
   .result-stats dd { font-size: 16px; }
   .hint { bottom: calc(56px + var(--safe-b)); }
   #follow { bottom: calc(56px + var(--safe-b)); }
