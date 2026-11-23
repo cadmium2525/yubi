@@ -18,8 +18,8 @@ const $ = (id) => document.getElementById(id);
 // ── 調整値 ──
 const HOLD_DELAY = 0.12; // これより短い押下は「狙点だけ」（タップ）
 const CHARGE_TIME = 0.95; // 蓄圧が満ちるまで（秒）
-const CRIT_WINDOW = 0.2; // 満ちてから「会心」で離せる時間
-const OVER_TIME = 1.3; // 過蓄圧が最大になるまで
+const CRIT_WINDOW = 0.35; // 満ちてから「会心」で離せる時間
+const OVER_TIME = 2.2; // 過蓄圧が最大になるまで
 const CRIT_POWER = 1.15;
 const STEP_MS = 1000 / 60;
 
@@ -40,13 +40,13 @@ let dailyStage = makeDailyStage(todayStr());
 
 // ★の数：破壊率 30% / 50% / 全壊
 function starsOf(rate, st = stage) {
-  return rate >= (st.zenkai ?? ZENKAI) ? 3 : rate >= 0.5 ? 2 : rate >= 0.3 ? 1 : 0;
+  return rate >= (st.zenkai ?? ZENKAI) ? 3 : rate >= 0.4 ? 2 : rate >= 0.2 ? 1 : 0;
 }
 function starText(n) { return '★'.repeat(n) + '☆'.repeat(3 - n); }
 function isUnlocked(i) {
   if (i === 0) return true;
   const b = store.best(STAGES[i - 1].id);
-  return !!b && b.rate >= 0.3;
+  return !!b && b.rate >= 0.2;
 }
 
 const S = store.settings;
@@ -175,7 +175,7 @@ function buildStageList() {
     el.disabled = !ok;
     el.innerHTML = `<span class="label">${st.label}</span><b class="ink">${st.name}</b>`
       + `<span class="stars">${starText(stars)}</span>`
-      + `<span class="intro">${ok ? st.intro : '前のステージで ★1（破壊率 30%）を取ると解放'}</span>`
+      + `<span class="intro">${ok ? st.intro : '前のステージで ★1（破壊率 20%）を取ると解放'}</span>`
       + `<span class="best">${b ? `BEST ${b.score.toLocaleString('ja-JP')}／${(b.rate * 100).toFixed(1)}%` : '未挑戦'}</span>`;
     el.addEventListener('click', () => startStage(st));
     box.appendChild(el);
@@ -391,7 +391,7 @@ function updateCharge(dt) {
   }
   // 過蓄圧：照準がぶれる
   const t = performance.now() / 1000;
-  const amp = charge.over * 30 / Math.max(0.4, cam.zoom);
+  const amp = charge.over * 16 / Math.max(0.4, cam.zoom);
   charge.jx = (Math.sin(t * 13.1) + Math.sin(t * 7.3)) * 0.5 * amp;
   charge.jy = (Math.cos(t * 11.7) + Math.sin(t * 5.1)) * 0.5 * amp;
   if (!charge.inkShown && h > 0.32) { charge.inkShown = true; showInk('蓄圧！', { x: inkX(), y: 0.2, size: 0.17, dur: 0.6 }); }
@@ -412,7 +412,7 @@ function release() {
   const h = charge.hold;
   if (h < CHARGE_TIME) { power = Math.max(0.1, charge.c); grade = charge.c < 0.45 ? '弱' : '良'; }
   else if (h < CHARGE_TIME + CRIT_WINDOW) { power = CRIT_POWER; grade = '会心'; }
-  else { power = 1 - 0.4 * charge.over; grade = '過蓄圧'; }
+  else { power = 1 - 0.25 * charge.over; grade = '過蓄圧'; }
   // 狙点（過蓄圧のぶれを含む）
   let pt = aimPoint();
   if (!pt) pt = R.toWorld(cam, aim.sx, aim.sy);
@@ -420,7 +420,7 @@ function release() {
   let hit = P.pick(pt, 22 / Math.max(0.3, cam.zoom));
   let dir = hit ? P.flickDir(hit.ent, hit.point) : aim.dir;
   if (charge.over > 0) {
-    const a = Math.atan2(dir.y, dir.x) + (Math.random() - 0.5) * charge.over * 0.6;
+    const a = Math.atan2(dir.y, dir.x) + (Math.random() - 0.5) * charge.over * 0.3;
     dir = { x: Math.cos(a), y: Math.sin(a) };
   }
   shot = { pt: hit ? hit.point : pt, dir, power, grade, hit, t: 0, applied: false };
@@ -654,7 +654,7 @@ function showResult() {
   if (newly.length) setTimeout(() => showInk('新景解放！', { x: 0.5, y: 0.14, size: 0.1, dur: 1.4 }, true), 900);
   resultData = { fin, rec, upd };
   const rate = fin.rate;
-  const word = rate >= ZENKAI ? '全壊。' : rate >= 0.5 ? '大破。' : rate >= 0.3 ? '中破。' : rate >= 0.1 ? '小破。' : 'かすり傷。';
+  const word = rate >= (stage.zenkai ?? ZENKAI) ? '全壊。' : rate >= 0.4 ? '大破。' : rate >= 0.2 ? '中破。' : rate >= 0.07 ? '小破。' : 'かすり傷。';
   drawResultInk(word);
   $('rank-title').textContent = `称号：${rankOf(fin.score)}`;
   $('r-move').textContent = moveName();
@@ -740,7 +740,7 @@ function toggleSettings(force) {
 
 // ヒントの既定：そのステージで ★1 を取るまでは表示
 function hintsOn() {
-  if (S.hints === null || S.hints === undefined) { const b = store.best(stage.id); return !(b && b.rate >= 0.3); }
+  if (S.hints === null || S.hints === undefined) { const b = store.best(stage.id); return !(b && b.rate >= 0.4); }
   return !!S.hints;
 }
 
@@ -1100,7 +1100,7 @@ function drawReticle(g, t) {
     g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 2;
     g.beginPath(); g.arc(0, 0, gr + 7, -Math.PI / 2 - 0.12, -Math.PI / 2 + 0.12); g.stroke();
     // 威力の表示
-    const pw = charge.hold < CHARGE_TIME ? charge.c : charge.crit ? CRIT_POWER : 1 - 0.4 * charge.over;
+    const pw = charge.hold < CHARGE_TIME ? charge.c : charge.crit ? CRIT_POWER : 1 - 0.25 * charge.over;
     const label = charge.crit ? '会心！' : charge.over > 0 ? '過蓄圧！' : `圧 ${Math.round(pw * 100)}%`;
     g.font = `900 ${touch ? 16 : 14}px ${'system-ui, sans-serif'}`;
     g.textAlign = 'center';

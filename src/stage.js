@@ -167,8 +167,8 @@ export const STAGE_YARD = {
   reach: { groups: ['stack', 'light', 'hq'], label: '港湾総崩れ' },
   weakPoints: [
     { id: 'wball', label: '吊り鉄球', dx: -0.9, dy: 0 },
-    { id: 'light', label: '照明塔', dx: -0.9, dy: 0.6, part: 'pole' },
-    { id: 'c4', label: 'てっぺん', dx: -0.8, dy: -0.6 },
+    { id: 'light', label: '照明塔', dx: -0.9, dy: -0.7, part: 'pole' },
+    { id: 'c2a', label: 'コンテナの山', dx: -0.9, dy: 0 },
   ],
   groups: { stack: 'コンテナの山', light: '照明塔', hq: '管理棟', street: '構内' },
   ropes: [{ id: 'wball', anchor: { x: 420, y: -620 } }],
@@ -214,10 +214,10 @@ export const STAGE_CASTLE = {
   ground: { x0: 40, x1: 1420, y: 0 },
   targetId: 'shachi',
   targetLabel: 'しゃちほこ撃破',
-  zenkai: 0.65,
+  zenkai: 0.5,
   reach: { groups: ['ishigaki', 'tenshu', 'hotel'], label: '城下総崩れ' },
   weakPoints: [
-    { id: 'st0_0', label: '隅石', dx: -0.85, dy: 0 },
+    { id: 't3', label: '三層', dx: -0.9, dy: 0 },
     { id: 'hotel', label: 'ホテル', dx: 0.9, dy: -0.8 },
     { id: 'shachi', label: 'しゃちほこ', dx: -0.8, dy: 0 },
   ],

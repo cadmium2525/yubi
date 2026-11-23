@@ -25,7 +25,7 @@ export const MATERIALS = {
 };
 
 export const TUNING = {
-  flickSpeed: 20, // 威力 1.0 のとき、質量 10 の物体に与える速度（px/step）。重い物ほど遅く、軽い物ほど速い
+  flickSpeed: 23, // 威力 1.0 のとき、質量 10 の物体に与える速度（px/step）。重い物ほど遅く、軽い物ほど速い
   massRef: 10,
   massExp: 0.35,
   followSpeed: 11, // 追撃で与える速度
@@ -34,14 +34,14 @@ export const TUNING = {
   maxAngular: 0.5,
   minFragment: 13, // これより細い破片は剛体にせず粒子にする
   chainEnergy: 4, // 連鎖とみなす最小の衝突エネルギー
-  chainBoost: 0.9, // 連鎖したときの押し出しの上乗せ（相対速度に対する倍率）
-  chainBoostMax: 9,
+  chainBoost: 1.35, // 連鎖したときの押し出しの上乗せ（相対速度に対する倍率）
+  chainBoostMax: 13,
   comboWindow: 2.4, // 秒：この間に次の連鎖がつながればコンボ継続
   fallY: 700,
 };
 
 // 「全壊」とみなす破壊率（一発でぎりぎり届くくらい）
-export const ZENKAI = 0.7;
+export const ZENKAI = 0.6;
 
 const QUALITY_BUDGET = { high: 64, mid: 52, low: 40 };
 
@@ -235,7 +235,7 @@ export function createPhysics(M, stage, opts = {}) {
     const pts = Math.round(root.value * add * 100 * comboMult());
     stats.destroyPoints += pts;
     events.push({ type: 'destroy', level, ent: root, pts, x: ent.body.position.x, y: ent.body.position.y });
-    if (root.target && !stats.targetDown && (level >= 1 || Math.abs(wrapAngle(ent.body.angle - ent.init.angle)) > 0.9)) {
+    if (root.target && !stats.targetDown && (level >= 1 || Math.abs(wrapAngle(ent.body.angle - ent.init.angle)) > 0.7)) {
       stats.targetDown = true;
       events.push({ type: 'target', x: ent.body.position.x, y: ent.body.position.y, name: root.name });
     }
@@ -437,10 +437,10 @@ export function createPhysics(M, stage, opts = {}) {
         const da = Math.abs(wrapAngle(b.angle - ent.init.angle));
         const dx = b.position.x - ent.init.x, dy = b.position.y - ent.init.y;
         const size = Math.max(ent.w || 0, ent.h || 0, (ent.r || 0) * 2, 40);
-        if (da > 0.55 || Math.hypot(dx, dy) > size * 0.45 + 12) markDestroyed(ent, 0.7);
+        if (da > 0.45 || Math.hypot(dx, dy) > size * 0.4 + 10) markDestroyed(ent, 0.8);
       }
       // 目標（看板）は大きく傾いたら「撃破」
-      if (ent.root.target && !stats.targetDown && Math.abs(wrapAngle(b.angle - ent.init.angle)) > 0.9) markDestroyed(ent, Math.max(ent.root.destroyed, 0.7) + 0.0001);
+      if (ent.root.target && !stats.targetDown && Math.abs(wrapAngle(b.angle - ent.init.angle)) > 0.7) markDestroyed(ent, Math.max(ent.root.destroyed, 0.7) + 0.0001);
       // 場外
       if (b.position.y > TUNING.fallY) {
         markDestroyed(ent, 1);
